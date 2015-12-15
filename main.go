@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"flag"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -50,6 +51,14 @@ func printTime(startTime time.Time, animWidth int) {
 }
 
 func main() {
+	var mute bool
+	var hideTime bool
+
+	// Parse options
+	flag.BoolVar(&mute, "m", false, "Don't play audio")
+	flag.BoolVar(&hideTime, "n", false, "Don't show the time nyaned")
+	flag.Parse()
+
 	// Set output character
 	const outputChar = "  "
 
@@ -112,8 +121,10 @@ func main() {
 	// Capture SIGINT
 	captureSigint()
 
-	// Play music
-	playAudio()
+	if !mute {
+		// Play music
+		playAudio()
+	}
 
 	for {
 		for _, frame := range frames {
@@ -125,8 +136,10 @@ func main() {
 				fmt.Println("\033[m")
 			}
 
-			// Print the time so far
-			printTime(startTime, animWidth)
+			if !hideTime {
+				// Print the time so far
+				printTime(startTime, animWidth)
+			}
 
 			// Reset the frame and sleep
 			fmt.Print("\033[H")
