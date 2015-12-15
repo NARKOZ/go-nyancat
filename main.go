@@ -13,6 +13,42 @@ import (
 	"time"
 )
 
+func captureSigint() {
+	c := make(chan os.Signal, 1)
+	signal.Notify(c, os.Interrupt)
+
+	go func() {
+		<-c
+		// Reset the TERM and exit
+		fmt.Println("\033[0m\033c")
+		os.Exit(0)
+	}()
+}
+
+func termSize() (int, int) {
+	cmd := exec.Command("stty", "size")
+	cmd.Stdin = os.Stdin
+	size, _ := cmd.Output()
+
+	termWidth, _ := strconv.Atoi(strings.TrimSpace(strings.Split(string(size), " ")[1]))
+	termHeight, _ := strconv.Atoi(strings.Split(string(size), " ")[0])
+	return termWidth, termHeight
+}
+
+func playAudio() {
+	audio, _ := filepath.Abs("assets/audio.mp3")
+	cmd := exec.Command("mpg123", "-loop 0", "-q", audio)
+	cmd.Start()
+}
+
+func printTime(startTime time.Time, animWidth int) {
+	message := fmt.Sprintf("You have nyaned for %.f seconds!", time.Since(startTime).Seconds())
+	padding := (animWidth - (len(message) + 4)) / 2
+
+	fmt.Print(strings.Repeat(" ", padding))
+	fmt.Printf("\033[1;37;17m%s", message)
+}
+
 func main() {
 	// Set output character
 	const outputChar = "  "
@@ -43,12 +79,7 @@ func main() {
 	json.Unmarshal(data, &frames)
 
 	// Get TTY size
-	cmd := exec.Command("stty", "size")
-	cmd.Stdin = os.Stdin
-	size, _ := cmd.Output()
-
-	termWidth, _ := strconv.Atoi(strings.TrimSpace(strings.Split(string(size), " ")[1]))
-	termHeight, _ := strconv.Atoi(strings.Split(string(size), " ")[0])
+	termWidth, termHeight := termSize()
 
 	// Calculate the width in terms of the output char
 	termWidth = termWidth / len(outputChar)
@@ -79,20 +110,10 @@ func main() {
 	startTime := time.Now()
 
 	// Capture SIGINT
-	c := make(chan os.Signal, 1)
-	signal.Notify(c, os.Interrupt)
-
-	go func() {
-		<-c
-		// Reset the TERM and exit
-		fmt.Println("\033[0m\033c")
-		os.Exit(0)
-	}()
+	captureSigint()
 
 	// Play music
-	audio, _ := filepath.Abs("assets/audio.mp3")
-	cmd = exec.Command("mpg123", "-loop 0", "-q", audio)
-	cmd.Start()
+	playAudio()
 
 	for {
 		for _, frame := range frames {
@@ -105,11 +126,7 @@ func main() {
 			}
 
 			// Print the time so far
-			message := fmt.Sprintf("You have nyaned for %.f seconds!", time.Since(startTime).Seconds())
-			padding := (animWidth - (len(message) + 4)) / 2
-
-			fmt.Print(strings.Repeat(" ", padding))
-			fmt.Printf("\033[1;37;17m%s", message)
+			printTime(startTime, animWidth)
 
 			// Reset the frame and sleep
 			fmt.Print("\033[H")
