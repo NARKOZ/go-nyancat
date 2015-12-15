@@ -5,7 +5,8 @@
 ## Installation
 
 ```sh
-go get github.com/NARKOZ/go-nyancat
+git clone https://github.com/NARKOZ/go-nyancat.git
+cd go-nyancat && go build
 ```
 
 Install [mpg123](http://www.mpg123.de/) for audio support.
@@ -17,7 +18,7 @@ On Mac OS X using Homebrew: `brew install mpg123`
 Run:
 
 ```sh
-go-nyancat
+./go-nyancat
 ```
 
 Options:
