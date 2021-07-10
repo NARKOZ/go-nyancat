@@ -143,7 +143,7 @@ func main() {
 
 			// Reset the frame and sleep
 			fmt.Print("\033[H")
-			time.Sleep(90 * time.Millisecond)
+			time.Sleep(50 * time.Millisecond)
 		}
 	}
 }
